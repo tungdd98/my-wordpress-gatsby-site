@@ -32,7 +32,7 @@ exports.createPages = async gatsbyUtilities => {
  */
 const createIndividualBlogPostPages = async ({ posts, gatsbyUtilities }) =>
   Promise.all(
-    posts.map(({ previous, post, next }) =>
+    posts.map(({ post }) =>
       // createPage is an action passed to createPages
       // See https://www.gatsbyjs.com/docs/actions#createPage for more info
       gatsbyUtilities.actions.createPage({
@@ -50,10 +50,6 @@ const createIndividualBlogPostPages = async ({ posts, gatsbyUtilities }) =>
           // so our blog post template knows which blog post
           // the current page is (when you open it in a browser)
           id: post.id,
-
-          // We also use the next and previous id's to query them and add links!
-          previousPostId: previous ? previous.id : null,
-          nextPostId: next ? next.id : null,
         },
       })
     )
@@ -88,7 +84,7 @@ async function createBlogPostArchive({ posts, gatsbyUtilities }) {
           // we want the first page to be "/" and any additional pages
           // to be numbered.
           // "/blog/2" for example
-          return page === 1 ? `/` : `/blog/${page}`
+          return page === 1 ? `/news` : `/news/${page}`
         }
 
         return null

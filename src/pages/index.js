@@ -4,19 +4,18 @@ import { graphql } from "gatsby"
 import DefaultLayout from "../layouts/DefaultLayout"
 import Seo from "../components/seo"
 
-const NotFoundPage = ({ data }) => {
+const HomePage = ({ data, location }) => {
   const siteTitle = data.site.siteMetadata.title
 
   return (
-    <DefaultLayout>
-      <Seo title={siteTitle} />
-      <h1>404: Not Found</h1>
-      <p>You just hit a route that doesn&#39;t exist... the sadness.</p>
+    <DefaultLayout location={location} title={siteTitle}>
+      <Seo title="Lorem ipsum dolor" />
+      <h1>Main Screen</h1>
     </DefaultLayout>
   )
 }
 
-export default NotFoundPage
+export default HomePage
 
 export const pageQuery = graphql`
   query {

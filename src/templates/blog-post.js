@@ -1,128 +1,113 @@
 import React from "react"
-import { Link, graphql } from "gatsby"
-import { GatsbyImage } from "gatsby-plugin-image"
+import { graphql, Link } from "gatsby"
 import parse from "html-react-parser"
+import bannerOffice from "../assets/images/banner-office-3.png"
+import DefaultLayout from "../layouts/DefaultLayout"
 
-// We're using Gutenberg so we need the block styles
-// these are copied into this project due to a conflict in the postCSS
-// version used by the Gatsby and @wordpress packages that causes build
-// failures.
-// @todo update this once @wordpress upgrades their postcss version
-import "../css/@wordpress/block-library/build-style/style.css"
-import "../css/@wordpress/block-library/build-style/theme.css"
-
-import Bio from "../components/bio"
-import Layout from "../components/layout"
-import Seo from "../components/seo"
-
-const BlogPostTemplate = ({ data: { previous, next, post } }) => {
-  const featuredImage = {
-    data: post.featuredImage?.node?.localFile?.childImageSharp?.gatsbyImageData,
-    alt: post.featuredImage?.node?.alt || ``,
-  }
+const BlogPostTemplate = ({ data: { post, allPost } }) => {
+  const otherPosts = allPost.nodes.filter(item => item.id !== post.id)
 
   return (
-    <Layout>
-      <Seo title={post.title} description={post.excerpt} />
-
-      <article
-        className="blog-post"
-        itemScope
-        itemType="http://schema.org/Article"
+    <DefaultLayout>
+      <section
+        className="bg-cover bg-center bg-no-repeat relative pt-[22%] min-h-[200px]"
+        style={{
+          backgroundImage: `linear-gradient(
+              180deg,
+              rgba(98, 97, 102, 0.5) 0%,
+              rgba(194, 194, 204, 0.25) 100%
+            ),
+            url(${bannerOffice})`,
+        }}
       >
-        <header>
-          <h1 itemProp="headline">{parse(post.title)}</h1>
+        <h2 className="c-title-breadcrumb">news</h2>
+      </section>
 
-          <p>{post.date}</p>
+      <div className="container">
+        <div className="my-14 text-justify">
+          <h3 className="text-2xl font-semibold">{post.title}</h3>
+          <span className="flex items-center mt-3">
+            <i className="icon icon-calendar_today mr-3"></i>
+            <span>{post.date}</span>
+          </span>
+          <div
+            dangerouslySetInnerHTML={{ __html: post.excerpt }}
+            className="my-5"
+          ></div>
+          <div
+            className="mb-5"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          ></div>
 
-          {/* if we have a featured image for this post let's display it */}
-          {featuredImage?.data && (
-            <GatsbyImage
-              image={featuredImage.data}
-              alt={featuredImage.alt}
-              style={{ marginBottom: 50 }}
-            />
-          )}
-        </header>
-
-        {!!post.content && (
-          <section itemProp="articleBody">{parse(post.content)}</section>
-        )}
-
-        <hr />
-
-        <footer>
-          <Bio />
-        </footer>
-      </article>
-
-      <nav className="blog-post-nav">
-        <ul
-          style={{
-            display: `flex`,
-            flexWrap: `wrap`,
-            justifyContent: `space-between`,
-            listStyle: `none`,
-            padding: 0,
-          }}
-        >
-          <li>
-            {previous && (
-              <Link to={previous.uri} rel="prev">
-                ← {parse(previous.title)}
-              </Link>
-            )}
-          </li>
-
-          <li>
-            {next && (
-              <Link to={next.uri} rel="next">
-                {parse(next.title)} →
-              </Link>
-            )}
-          </li>
-        </ul>
-      </nav>
-    </Layout>
+          <div className="text-xl font-semibold pb-4 border-b-2">
+            Other News
+          </div>
+          <section className="grid grid-cols-1 gap-5 my-8 md:grid-cols-2 lg:grid-cols-3 md:gap-10">
+            {otherPosts.map(item => (
+              <article
+                key={item.id}
+                className="c-transition group bg-white border overflow-hidden hover:bg-gray-200 hover:shadow-lg rounded-[10px]"
+              >
+                <Link to={item.uri} itemProp="url">
+                  <div className="overflow-hidden">
+                    <img
+                      className="object-cover c-transition w-full h-full aspect-video group-hover:scale-110"
+                      src={item.featuredImage?.node?.mediaItemUrl}
+                      alt={item.featuredImage?.node?.altText}
+                    />
+                  </div>
+                  <div className="p-4 pt-2 lg:p-5">
+                    <h3 className="font-bold text-lg c-transition line-clamp-2 text-justify hover:text-primary">
+                      {parse(item.title)}
+                    </h3>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: item.excerpt }}
+                      className="text-sm my-4 line-clamp-2 text-justify"
+                    ></div>
+                    <div>
+                      <div className="flex items-center text-primary">
+                        <i className="icon icon-calendar_today"></i>
+                        <span className="ml-2">{item.date}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </article>
+            ))}
+          </section>
+        </div>
+      </div>
+    </DefaultLayout>
   )
 }
 
 export default BlogPostTemplate
 
 export const pageQuery = graphql`
-  query BlogPostById(
-    $id: String!
-    $previousPostId: String
-    $nextPostId: String
-  ) {
+  query BlogPostById($id: String!) {
     post: wpPost(id: { eq: $id }) {
       id
       excerpt
       content
       title
-      date(formatString: "MMMM DD, YYYY")
-      featuredImage {
-        node {
-          altText
-          localFile {
-            childImageSharp {
-              gatsbyImageData(
-                quality: 100
-                placeholder: TRACED_SVG
-                layout: FULL_WIDTH
-              )
-            }
+      date(formatString: "DD/MM/YYYY")
+    }
+
+    allPost: allWpPost {
+      nodes {
+        excerpt
+        id
+        uri
+        title
+        date
+        featuredImage {
+          node {
+            altText
+            mediaItemUrl
           }
         }
+        content
       }
-    }
-    previous: wpPost(id: { eq: $previousPostId }) {
-      uri
-      title
-    }
-    next: wpPost(id: { eq: $nextPostId }) {
-      uri
-      title
     }
   }
 `
